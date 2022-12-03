@@ -6,3 +6,4 @@
 [[redirects]]
   from = "/backend/*"
   to = "/.netlify/functions/hello/:splat"
+  status = 200
