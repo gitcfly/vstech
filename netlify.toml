@@ -4,6 +4,6 @@
   publish = "view"
 
 [[redirects]]
-  from = "/*"
+  from = "/api/*"
   to = "/.netlify/functions/goapi:splat"
   status = 200
