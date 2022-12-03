@@ -2,3 +2,7 @@
   command = "./build.sh"
   functions = "backend"
   publish = "view"
+
+[[redirects]]
+  from = "/backend/*"
+  to = "/.netlify/functions/hello/:splat"
