@@ -15,7 +15,9 @@ var (
 
 func main() {
 	flag.Parse()
-	http.HandleFunc("/", root)
+	http.HandleFunc("/api/code", code)
+	http.HandleFunc("/api/feed", feed)
+	http.HandleFunc("/api/root", root)
 	listener := gateway.ListenAndServe
 	portStr := "n/a"
 	if *port != -1 {
