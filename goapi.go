@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/apex/gateway"
 )
@@ -16,9 +17,9 @@ var (
 
 func main() {
 	flag.Parse()
-	http.HandleFunc("/api/code", code)
-	http.HandleFunc("/api/feed", feed)
-	http.HandleFunc("/api/root", root)
+	http.HandleFunc("/api/readf", readf)
+	http.HandleFunc("/api/writef", writef)
+	http.HandleFunc("/api/net", net)
 	if *port == -1 {
 		log.Fatal(gateway.ListenAndServe("", nil))
 		return
@@ -28,28 +29,47 @@ func main() {
 	log.Fatal(http.ListenAndServe(portStr, nil))
 }
 
-func root(w http.ResponseWriter, r *http.Request) {
+func net(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	rsp, err := http.Get("https://www.baidu.com/")
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"root","err":"%v"}`, err.Error())))
+		w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"net","err":"%v"}`, err.Error())))
 		return
 	}
 	defer rsp.Body.Close()
 	bodys, err := ioutil.ReadAll(rsp.Body)
 	if err != nil {
-		w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"root","err":"%v"}`, err.Error())))
+		w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"net","err":"%v"}`, err.Error())))
 		return
 	}
-	w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"root","path":"%v","body":"%v"}`, string(bodys))))
+	w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"net","path":"%v","body":"%v"}`, string(bodys))))
 }
 
-func code(w http.ResponseWriter, r *http.Request) {
+func readf(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
-	w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"code","path":"%v"}`, r.URL.String())))
+	fs, err := ioutil.ReadFile("config.txt")
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"readf","err":"%v"}`, err)))
+		return
+	}
+	w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"code","content":"%v"}`, string(fs))))
 }
 
-func feed(w http.ResponseWriter, r *http.Request) {
+func writef(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
-	w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"feed","path":"%v"}`, r.URL.String())))
+	fs, err := os.Create("create_new_file.txt")
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"writef","err":"%v"}`, err)))
+		return
+	}
+	n, err := fs.Write([]byte("this is new text"))
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"writef","err":"%v"}`, err)))
+		return
+	}
+	if n == 0 {
+		w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"writef","err":"write content is zero"}`)))
+		return
+	}
+	w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"feed","path":"%v","wirten":"%v"}`, n)))
 }
