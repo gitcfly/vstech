@@ -1,7 +1,10 @@
 [build]
   command = "./build.sh"
-  functions = "backend"
   publish = "view"
+
+[functions]
+  directory = "backend"
+  included_files = ["backend/*"]
 
 [[redirects]]
   from = "/api/*"
