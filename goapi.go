@@ -64,7 +64,7 @@ func readf(w http.ResponseWriter, r *http.Request) {
 		log.Println(file.Name())
 	}
 
-	fs, err := ioutil.ReadFile("config.txt")
+	fs, err := ioutil.ReadFile("config/config.txt")
 	if err != nil {
 		w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"readf","err":"%v"}`, err)))
 		return
