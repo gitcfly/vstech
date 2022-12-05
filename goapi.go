@@ -11,24 +11,21 @@ import (
 )
 
 var (
-	count = 0
-	port  = flag.Int("port", -1, "specify a port")
+	port = flag.Int("port", -1, "specify a port")
 )
 
 func main() {
 	flag.Parse()
-	count++
 	http.HandleFunc("/api/code", code)
 	http.HandleFunc("/api/feed", feed)
 	http.HandleFunc("/api/root", root)
-	listener := gateway.ListenAndServe
-	portStr := "n/a"
-	if *port != -1 {
-		portStr = fmt.Sprintf(":%d", *port)
-		listener = http.ListenAndServe
-		http.Handle("/", http.FileServer(http.Dir("./public")))
+	if *port == -1 {
+		log.Fatal(gateway.ListenAndServe("", nil))
+		return
 	}
-	log.Fatal(listener(portStr, nil))
+	http.Handle("/", http.FileServer(http.Dir("./view")))
+	portStr := fmt.Sprintf(":%d", *port)
+	log.Fatal(http.ListenAndServe(portStr, nil))
 }
 
 func root(w http.ResponseWriter, r *http.Request) {
