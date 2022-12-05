@@ -32,7 +32,7 @@ func main() {
 
 func root(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
-	w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"root","path":"%v","port":"%v","count":"%v"}`, r.URL.String(), port, count)))
+	w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"root","path":"%v","port":"%v","count":"%v"}`, r.URL.String(), *port, count)))
 }
 
 func code(w http.ResponseWriter, r *http.Request) {
