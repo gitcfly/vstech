@@ -10,11 +10,13 @@ import (
 )
 
 var (
-	port = flag.Int("port", -1, "specify a port")
+	count = 0
+	port  = flag.Int("port", -1, "specify a port")
 )
 
 func main() {
 	flag.Parse()
+	count++
 	http.HandleFunc("/api/code", code)
 	http.HandleFunc("/api/feed", feed)
 	http.HandleFunc("/api/root", root)
@@ -30,7 +32,7 @@ func main() {
 
 func root(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
-	w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"root","path":"%v"}`, r.URL.String())))
+	w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"root","path":"%v","port":"%v","count":"%v"}`, r.URL.String(), port, count)))
 }
 
 func code(w http.ResponseWriter, r *http.Request) {
