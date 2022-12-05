@@ -47,6 +47,23 @@ func net(w http.ResponseWriter, r *http.Request) {
 
 func readf(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	log.Println(dir)
+
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	// 获取文件，并输出它们的名字
+	for _, file := range files {
+		log.Println(file.Name())
+	}
+
 	fs, err := ioutil.ReadFile("config.txt")
 	if err != nil {
 		w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"readf","err":"%v"}`, err)))
