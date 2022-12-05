@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -32,7 +33,18 @@ func main() {
 
 func root(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
-	w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"root","path":"%v","port":"%v","count":"%v"}`, r.URL.String(), *port, count)))
+	rsp, err := http.Get("https://www.baidu.com/")
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"root","err":"%v"}`, err.Error())))
+		return
+	}
+	defer rsp.Body.Close()
+	bodys, err := ioutil.ReadAll(rsp.Body)
+	if err != nil {
+		w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"root","err":"%v"}`, err.Error())))
+		return
+	}
+	w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"root","path":"%v","body":"%v"}`, string(bodys))))
 }
 
 func code(w http.ResponseWriter, r *http.Request) {
@@ -44,33 +56,3 @@ func feed(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"feed","path":"%v"}`, r.URL.String())))
 }
-
-//
-//func feed(w http.ResponseWriter, r *http.Request) {
-//	url := "https://www.zhihu.com/api/v3/feed/topstory/hot-lists/total?limit=50&desktop=true"
-//	method := "GET"
-//
-//	client := &http.Client{}
-//	req, err := http.NewRequest(method, url, nil)
-//
-//	if err != nil {
-//		fmt.Println(err)
-//		return
-//	}
-//
-//	res, err := client.Do(req)
-//	if err != nil {
-//		fmt.Println(err)
-//		return
-//	}
-//	defer res.Body.Close()
-//
-//	body, err := ioutil.ReadAll(res.Body)
-//	if err != nil {
-//		fmt.Println(err)
-//		return
-//	}
-//
-//	w.Header().Set("content-type", "application/json")
-//	w.Write(body)
-//}
