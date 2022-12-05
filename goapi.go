@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -13,8 +12,10 @@ import (
 )
 
 var (
-	glog = log.New(&bytes.Buffer{}, "loger:", log.Lshortfile)
-	port = flag.Int("port", -1, "specify a port")
+	glog                   = log.New(os.Stderr, "loger:", log.Lshortfile)
+	port                   = flag.Int("port", -1, "specify a port")
+	_LAMBDA_SERVER_PORT    = ""
+	AWS_LAMBDA_RUNTIME_API = ""
 )
 
 func main() {
@@ -22,7 +23,8 @@ func main() {
 	http.HandleFunc("/api/readf", readf)
 	http.HandleFunc("/api/writef", writef)
 	http.HandleFunc("/api/net", net)
-	http.HandleFunc("/api/dir", http.FileServer(http.Dir("../")).ServeHTTP)
+	_LAMBDA_SERVER_PORT = os.Getenv("_LAMBDA_SERVER_PORT")
+	AWS_LAMBDA_RUNTIME_API = os.Getenv("AWS_LAMBDA_RUNTIME_API")
 	if *port == -1 {
 		glog.Fatal(gateway.ListenAndServe("", nil))
 		return
@@ -51,6 +53,8 @@ func net(w http.ResponseWriter, r *http.Request) {
 
 func readf(w http.ResponseWriter, r *http.Request) {
 	glog.Println(r.Method, r.URL.String())
+	glog.Println(_LAMBDA_SERVER_PORT)
+	glog.Println(AWS_LAMBDA_RUNTIME_API)
 	w.Header().Set("content-type", "application/json")
 	dir, err := os.Getwd()
 	if err != nil {
@@ -92,5 +96,5 @@ func writef(w http.ResponseWriter, r *http.Request) {
 		glog.Println("write content is zero")
 		return
 	}
-	w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"feed","path":"%v","wirten":"%v"}`, n)))
+	w.Write([]byte(fmt.Sprintf(`{"code":200,"msg":"feed","path":"%v","wirten":"%v"}`, fs.Name(), n)))
 }
