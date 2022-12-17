@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/apex/gateway"
 	"github.com/elazarl/goproxy"
 )
 
@@ -17,7 +18,6 @@ var (
 )
 
 func main() {
-	lamdaServerPort := os.Getenv("_LAMBDA_SERVER_PORT")
 	proxy := goproxy.NewProxyHttpServer()
 	proxy.Verbose = true
 	proxy.NonproxyHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -36,7 +36,7 @@ func main() {
 			glog.Println(ctx.Req.Proto, ctx.Req.Method, ctx.Req.URL.String())
 			return r, nil
 		})
-	glog.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", lamdaServerPort), proxy))
+	glog.Fatal(gateway.ListenAndServe("", proxy))
 }
 
 func net(w http.ResponseWriter, r *http.Request) {
