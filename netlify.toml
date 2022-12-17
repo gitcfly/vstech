@@ -7,6 +7,6 @@
   included_files = ["config/**"]
 
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/goapi/api/:splat"
+  from = "/*"
+  to = "/.netlify/functions/goapi/:splat"
   status = 200

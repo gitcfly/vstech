@@ -1,37 +1,42 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strings"
+	"time"
 
-	"github.com/apex/gateway"
+	"github.com/elazarl/goproxy"
 )
 
 var (
-	glog                   = log.New(os.Stderr, "loger:", log.Lshortfile)
-	port                   = flag.Int("port", -1, "specify a port")
-	_LAMBDA_SERVER_PORT    = ""
-	AWS_LAMBDA_RUNTIME_API = ""
+	glog = log.New(os.Stderr, "loger:", log.Lshortfile)
 )
 
 func main() {
-	flag.Parse()
-	http.HandleFunc("/api/readf", readf)
-	http.HandleFunc("/api/writef", writef)
-	http.HandleFunc("/api/net", net)
-	_LAMBDA_SERVER_PORT = os.Getenv("_LAMBDA_SERVER_PORT")
-	AWS_LAMBDA_RUNTIME_API = os.Getenv("AWS_LAMBDA_RUNTIME_API")
-	if *port == -1 {
-		glog.Fatal(gateway.ListenAndServe("", nil))
-		return
-	}
-	http.Handle("/", http.FileServer(http.Dir("./view")))
-	portStr := fmt.Sprintf(":%d", *port)
-	glog.Fatal(http.ListenAndServe(portStr, nil))
+	lamdaServerPort := os.Getenv("_LAMBDA_SERVER_PORT")
+	proxy := goproxy.NewProxyHttpServer()
+	proxy.Verbose = true
+	proxy.NonproxyHandler = http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				glog.Println(err)
+			}
+		}()
+		stime := time.Now()
+		var envStr = strings.Join(os.Environ(), "\n")
+		cost := time.Since(stime)
+		http.Error(w, fmt.Sprintf("%v \nThis is a proxy server. Does not respond to non-proxy requests.\n reqeust cost=%v", envStr, cost), 500)
+	})
+	proxy.OnRequest().DoFunc(
+		func(r *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
+			glog.Println(ctx.Req.Proto, ctx.Req.Method, ctx.Req.URL.String())
+			return r, nil
+		})
+	glog.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", lamdaServerPort), proxy))
 }
 
 func net(w http.ResponseWriter, r *http.Request) {
@@ -53,8 +58,6 @@ func net(w http.ResponseWriter, r *http.Request) {
 
 func readf(w http.ResponseWriter, r *http.Request) {
 	glog.Println(r.Method, r.URL.String())
-	glog.Println(_LAMBDA_SERVER_PORT)
-	glog.Println(AWS_LAMBDA_RUNTIME_API)
 	w.Header().Set("content-type", "application/json")
 	dir, err := os.Getwd()
 	if err != nil {
